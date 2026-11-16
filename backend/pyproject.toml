@@ -8,8 +8,10 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "beautifulsoup4>=4.15.0",
     "fastapi[standard]>=0.162.0",
     "httpx>=0.28.1",
+    "mailtrap>=3.1.0",
     "pydantic-settings>=2.16.2",
     "resend>=2.50.1",
     "supabase>=2.33.0",
@@ -21,3 +23,8 @@ davenance-backend = "davenance_backend:main"
 [build-system]
 requires = ["uv_build>=0.12.21,<0.13.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
