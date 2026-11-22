@@ -1,8 +1,5 @@
 @import "@fontsource-variable/plus-jakarta-sans";
 
-/* Cadance interface, "Horizon" skin.
-   Warm off-white canvas with soft colour washes, frosted glass panels, pill-shaped controls,
-   one warm orange for actions. Plus Jakarta Sans throughout. Light only. */
 
 :root {
   color-scheme: light;

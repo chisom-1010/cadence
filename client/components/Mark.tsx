@@ -1,4 +1,4 @@
-/** The Cadance mark: a sun-coloured disc with an open "C". */
+
 export default function Mark({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">

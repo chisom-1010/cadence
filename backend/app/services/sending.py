@@ -16,8 +16,8 @@ class DeliveryBlocked(Exception):
     """Demo mode is on and there is no confirmed address to deliver to."""
 
 
-DEMO_NOTE = ("[Cadance demo] This email was drafted for {to}. It was delivered only to you, "
-             "because Cadance sends to the signed-in account owner unless live sending is switched on.\n\n")
+DEMO_NOTE = ("[Cadence demo] This email was drafted for {to}. It was delivered only to you, "
+             "because Cadence sends to the signed-in account owner unless live sending is switched on.\n\n")
 
 
 def recipient_for(lead_to: str | None, owner_email: str | None, owner_confirmed: bool) -> tuple[str | None, bool]:

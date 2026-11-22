@@ -22,11 +22,11 @@ export default function Campaigns() {
 
   useEffect(() => {
     try {
-      const draft = sessionStorage.getItem("cadance.draft");
+      const draft = sessionStorage.getItem("cadence.draft");
       if (draft) {
         setDesc(draft);
         setShowForm(true);
-        sessionStorage.removeItem("cadance.draft");
+        sessionStorage.removeItem("cadence.draft");
       }
     } catch {}
   }, []);

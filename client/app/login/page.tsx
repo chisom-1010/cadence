@@ -10,7 +10,7 @@ import Mark from "../../components/Mark";
 import "../shell.css";
 
 function sessionStorageDraft() {
-  try { return !!sessionStorage.getItem("cadance.draft"); } catch { return false; }
+  try { return !!sessionStorage.getItem("cadence.draft"); } catch { return false; }
 }
 
 const FLOW = ["Describe", "Find", "Research", "Draft", "Approve", "Send", "Replies"];

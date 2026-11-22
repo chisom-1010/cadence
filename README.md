@@ -1,6 +1,6 @@
-# Cadance
+# Cadence
 
-AI outreach with a human in the loop. Describe who you want to reach. Cadance finds the companies, researches each one, finds the right person, and drafts the first email. **Nothing is sent until you approve it.**
+AI outreach with a human in the loop. Describe who you want to reach. Cadence finds the companies, researches each one, finds the right person, and drafts the first email. **Nothing is sent until you approve it.**
 
 Built solo as a study of [Explee](https://explee.com) (an AI outreach agent), using only free tools.
 
@@ -56,7 +56,7 @@ Sending is **off by default** for real recipients.
 
 | Setting | Behaviour |
 |---|---|
-| `LIVE_SENDING=false` (default) | Every email is delivered **only to the signed-in account owner**, and only once their email is confirmed. The body starts with a `[Cadance demo]` note saying who it was drafted for. Leads are never contacted. |
+| `LIVE_SENDING=false` (default) | Every email is delivered **only to the signed-in account owner**, and only once their email is confirmed. The body starts with a `[Cadence demo]` note saying who it was drafted for. Leads are never contacted. |
 | `DEMO_RECIPIENT=you@example.com` | Overrides the above: everything goes to this one inbox. |
 | `LIVE_SENDING=true` | Emails go to the lead's real address. Use only with a sending domain you own and have verified. |
 

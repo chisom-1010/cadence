@@ -17,7 +17,7 @@ const EXAMPLES = [
 
 const STEPS = [
   { name: "Describe", text: "Say who you want to reach in a sentence or two." },
-  { name: "Find", text: "Cadance searches the web for companies that fit." },
+  { name: "Find", text: "Cadence searches the web for companies that fit." },
   { name: "Research", text: "It reads each company's own website and notes what it does." },
   { name: "Draft", text: "It writes a short email that uses what it found." },
   { name: "Approve", text: "You read every email. Edit it, approve it or reject it." },
@@ -47,7 +47,7 @@ export default function Home() {
   function start(e: React.FormEvent) {
     e.preventDefault();
     try {
-      if (text.trim()) sessionStorage.setItem("cadance.draft", text.trim());
+      if (text.trim()) sessionStorage.setItem("cadence.draft", text.trim());
     } catch {}
     router.push(session ? "/campaigns" : "/login");
   }
