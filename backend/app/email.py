@@ -16,17 +16,14 @@ def _get_client() -> mt.MailtrapClient:
 
 
 def send_email(to: str, subject: str, body: str) -> str:
-    """Send one email. Returns the address it was actually delivered to (differs in demo mode)."""
+    """Send one email to exactly `to`. Who `to` is gets decided in services/sending.py."""
     if not settings.sender_email:
         raise RuntimeError("SENDER_EMAIL is not set on the server.")
-    actual_to = settings.demo_recipient or to
-    if settings.demo_recipient:
-        body = f"[DEMO MODE: originally for {to}]\n\n{body}"
     mail = mt.Mail(
         sender=mt.Address(email=settings.sender_email, name=settings.sender_name),
-        to=[mt.Address(email=actual_to)],
+        to=[mt.Address(email=to)],
         subject=subject,
         text=body,
     )
     _get_client().send(mail)
-    return actual_to
+    return to

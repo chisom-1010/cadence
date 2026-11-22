@@ -103,12 +103,22 @@ def approve_all(user=Depends(current_user)):
     return {"approved": n}
 
 
+def _owner(user) -> tuple[str | None, bool]:
+    """The signed-in user's address, and whether Supabase has confirmed they own it."""
+    return user.email, bool(getattr(user, "email_confirmed_at", None))
+
+
 @router.post("/emails/send-approved")
 def send_approved(background: BackgroundTasks, user=Depends(current_user)):
     """Send every approved email in the background, one at a time."""
     ids = [e["id"] for e in repo.list_emails(user.id, ["approved"])]
+    owner_email, confirmed = _owner(user)
+    try:
+        sending.recipient_for(None, owner_email, confirmed)       # fail now, not silently in the background
+    except sending.DeliveryBlocked as exc:
+        raise HTTPException(403, str(exc)) from exc
     if ids:
-        background.add_task(sending.send_many, user.id, ids)
+        background.add_task(sending.send_many, user.id, ids, owner_email, confirmed)
     return {"queued": len(ids)}
 
 
@@ -116,9 +126,11 @@ def send_approved(background: BackgroundTasks, user=Depends(current_user)):
 def send_email_now(email_id: str, user=Depends(current_user)):
     _email_or_404(user, email_id)
     try:
-        email = sending.send_one(user.id, email_id)
+        email = sending.send_one(user.id, email_id, *_owner(user))
     except sending.SendBlocked as exc:
         raise HTTPException(409, str(exc)) from exc
+    except sending.DeliveryBlocked as exc:
+        raise HTTPException(403, str(exc)) from exc
     except LookupError as exc:
         raise HTTPException(404, str(exc)) from exc
     if email["status"] == "failed":

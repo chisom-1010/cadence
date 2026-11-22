@@ -1,1 +1,1 @@
-export const BRAND = "Davenance"; // rename freely
+export const BRAND = "Cadance"; // rename freely

@@ -1,12 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../../lib/use-session";
 import { BRAND } from "../../lib/brand";
 import Mark from "../../components/Mark";
 import "../shell.css";
+
+function sessionStorageDraft() {
+  try { return !!sessionStorage.getItem("cadance.draft"); } catch { return false; }
+}
 
 const FLOW = ["Describe", "Find", "Research", "Draft", "Approve", "Send", "Replies"];
 
@@ -21,7 +26,7 @@ export default function Login() {
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    if (session) router.replace("/dashboard");
+    if (session) router.replace(sessionStorageDraft() ? "/campaigns" : "/dashboard");
   }, [session, router]);
 
   async function submit(e: React.FormEvent) {
@@ -32,11 +37,11 @@ export default function Login() {
     if (mode === "signin") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
-      else router.replace("/dashboard");
+      else router.replace(sessionStorageDraft() ? "/campaigns" : "/dashboard");
     } else {
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) setError(error.message);
-      else if (data.session) router.replace("/dashboard");
+      else if (data.session) router.replace(sessionStorageDraft() ? "/campaigns" : "/dashboard");
       else setNotice("Account created. Check your inbox to confirm your email, then sign in.");
     }
     setBusy(false);
@@ -45,7 +50,7 @@ export default function Login() {
   return (
     <main className="auth">
       <aside className="auth-aside">
-        <div className="brand"><Mark />{BRAND}</div>
+        <Link href="/" className="brand"><Mark />{BRAND}</Link>
         <div>
           <h1>Outreach that waits for your approval.</h1>
           <p>Describe who you want to reach. {BRAND} finds the companies, researches each one, finds the right person and drafts the email. Nothing is sent until you approve it.</p>

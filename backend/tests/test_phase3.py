@@ -30,8 +30,11 @@ def setup(fake, monkeypatch):
     """A campaign with one researched lead (fit 80) and one weak lead (fit 20)."""
     monkeypatch.setattr(drafting, "complete_json", draft_ok)
     monkeypatch.setattr(drafting.settings, "research_delay_seconds", 0)
+    monkeypatch.setattr(drafting.settings, "sender_name", "Outreach")      # tests must not depend on the developer's .env
+    monkeypatch.setattr(drafting.settings, "min_fit_to_draft", 40)
     monkeypatch.setattr(sending.settings, "send_delay_seconds", 0)
     monkeypatch.setattr(sending.settings, "demo_recipient", "me@demo.test")
+    monkeypatch.setattr(sending.settings, "live_sending", False)
     sent = []
     monkeypatch.setattr(sending, "send_email", lambda to, subject, body: sent.append((to, subject)) or "me@demo.test")
     c = fake.create_campaign("u1", {"name": "T", "product_pitch": "Route planning", "icp": ICP(summary="s", pain_points=["empty trips"]).model_dump()})
@@ -112,7 +115,7 @@ def test_send_requires_approval_and_never_sends_twice(client, setup, fake):
     client.post(f"/emails/{eid}/approve")
     out = client.post(f"/emails/{eid}/send").json()["email"]
     assert out["status"] == "sent" and out["sent_to"] == "me@demo.test"
-    assert setup.sent == [("amara@brightline.example", "Fewer empty return trips")]
+    assert setup.sent == [("me@demo.test", "Fewer empty return trips")]   # demo mode: the lead is never contacted
     assert client.post(f"/emails/{eid}/send").status_code == 409             # second click does nothing
     assert len(setup.sent) == 1 and fake.leads[setup.good]["status"] == "sent"
 
@@ -131,8 +134,9 @@ def test_provider_failure_marks_the_email_failed_and_allows_retry(client, setup,
     assert client.post(f"/emails/{eid}/send").json()["email"]["status"] == "sent"
 
 
-def test_without_demo_mode_a_lead_without_an_address_fails_cleanly(client, setup, fake, monkeypatch):
+def test_with_live_sending_a_lead_without_an_address_fails_cleanly(client, setup, fake, monkeypatch):
     monkeypatch.setattr(sending.settings, "demo_recipient", "")
+    monkeypatch.setattr(sending.settings, "live_sending", True)
     fake.update_lead("u1", setup.weak, {"status": "researched", "fit_score": 90})
     eid = client.post(f"/leads/{setup.weak}/draft").json()["email"]["id"]
     client.post(f"/emails/{eid}/approve")
@@ -209,3 +213,43 @@ def test_reply_is_saved_even_when_the_llm_fails_and_can_be_relabelled(client, se
 def test_empty_reply_body_is_rejected(client, setup):
     sent_lead(client, setup)
     assert client.post(f"/leads/{setup.good}/replies", json={"body": ""}).status_code == 422
+
+
+# ---- Delivery rules: demo mode only ever delivers to the confirmed account owner ----
+
+def _approved(client, setup):
+    eid = client.post(f"/leads/{setup.good}/draft").json()["email"]["id"]
+    client.post(f"/emails/{eid}/approve")
+    return eid
+
+
+def test_demo_mode_delivers_to_the_confirmed_owner_with_a_disclosure(client, setup, monkeypatch):
+    monkeypatch.setattr(sending.settings, "demo_recipient", "")
+    monkeypatch.setattr(sending.settings, "live_sending", False)
+    app.dependency_overrides[current_user] = lambda: SimpleNamespace(id="u1", email="owner@me.co", email_confirmed_at="2026-11-01")
+    bodies = []
+    monkeypatch.setattr(sending, "send_email", lambda to, subject, body: bodies.append((to, body)) or to)
+    eid = _approved(client, setup)
+    out = client.post(f"/emails/{eid}/send").json()["email"]
+    assert out["sent_to"] == "owner@me.co"
+    assert bodies[0][0] == "owner@me.co" and bodies[0][1].startswith("[Cadance demo]") and "amara@brightline.example" in bodies[0][1]
+
+
+def test_demo_mode_refuses_an_unconfirmed_owner_and_keeps_the_email_approved(client, setup, fake, monkeypatch):
+    monkeypatch.setattr(sending.settings, "demo_recipient", "")
+    monkeypatch.setattr(sending.settings, "live_sending", False)
+    eid = _approved(client, setup)                                   # default test user has no email_confirmed_at
+    r = client.post(f"/emails/{eid}/send")
+    assert r.status_code == 403 and "not confirmed" in r.json()["detail"]
+    assert fake.emails[eid]["status"] == "approved" and setup.sent == []
+    assert client.post("/emails/send-approved").status_code == 403
+
+
+def test_live_sending_goes_to_the_lead(client, setup, monkeypatch):
+    monkeypatch.setattr(sending.settings, "demo_recipient", "")
+    monkeypatch.setattr(sending.settings, "live_sending", True)
+    got = []
+    monkeypatch.setattr(sending, "send_email", lambda to, subject, body: got.append((to, body)) or to)
+    eid = _approved(client, setup)
+    assert client.post(f"/emails/{eid}/send").json()["email"]["sent_to"] == "amara@brightline.example"
+    assert not got[0][1].startswith("[Cadance demo]")

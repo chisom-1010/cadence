@@ -21,6 +21,17 @@ export default function Campaigns() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    try {
+      const draft = sessionStorage.getItem("cadance.draft");
+      if (draft) {
+        setDesc(draft);
+        setShowForm(true);
+        sessionStorage.removeItem("cadance.draft");
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     supabase
       .from("campaigns")
       .select("*, leads(count)")

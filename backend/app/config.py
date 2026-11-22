@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     sender_name: str = "Outreach"
     # Demo mode: when set, every outgoing email is redirected to this address
     demo_recipient: str = ""
+    # Live sending: email the lead's own address. Off by default. While off, every email is
+    # delivered only to the signed-in account owner (or DEMO_RECIPIENT if set).
+    live_sending: bool = False
 
     # LLM: any OpenAI-compatible chat completions endpoint (Groq, Gemini, ...)
     llm_base_url: str = "https://api.groq.com/openai/v1"

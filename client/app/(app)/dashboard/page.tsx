@@ -135,7 +135,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div>
+      {/* <div>
         <div className="sect-head">
           <h2>System</h2>
           <button className="btn small quiet" onClick={run}>Check again</button>
@@ -149,7 +149,7 @@ export default function Dashboard() {
             </li>
           ))}
         </ul>
-      </div>
+      </div> */}
     </section>
   );
 }

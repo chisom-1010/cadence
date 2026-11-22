@@ -12,7 +12,8 @@ def me(user=Depends(current_user)):
     return {
         "id": user.id,
         "email": user.email,
-        "demo_mode": bool(settings.demo_recipient),
-        "demo_recipient": settings.demo_recipient or None,
+        "demo_mode": not settings.live_sending,
+        "demo_recipient": (settings.demo_recipient or user.email) if not settings.live_sending else None,
+        "email_confirmed": bool(getattr(user, "email_confirmed_at", None)),
         "mail_configured": bool(settings.mailtrap_api_token and settings.sender_email),
     }
